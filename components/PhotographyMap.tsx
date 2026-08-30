@@ -306,7 +306,7 @@ export default function PhotographyMap() {
         getPosition: (d) => [d.longitude, d.latitude],
         getRadius: (d) => (d.id === activeId ? 11 : 7),
         getFillColor: (d) => groupColor(d.group),
-        getLineColor: [255, 255, 255, 255],
+        getLineColor: darkBasemap ? [255, 255, 255, 255] : [17, 20, 26, 255],
         lineWidthUnits: "pixels",
         getLineWidth: (d) => (d.id === selectedId ? 3 : 1.5),
         onHover: (info: PickingInfo<Place>) => setHoverId(info.object?.id ?? null),
