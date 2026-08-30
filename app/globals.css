@@ -22,6 +22,8 @@
 html,
 body {
   height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
@@ -40,6 +42,10 @@ body {
 
 .dcfc-popup .maplibregl-popup-tip {
   border-top-color: rgba(24, 24, 27, 0.95);
+}
+
+.dcfc-popup-light .maplibregl-popup-tip {
+  border-top-color: #ffffff;
 }
 
 .dcfc-popup.maplibregl-popup {
