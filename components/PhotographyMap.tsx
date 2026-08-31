@@ -388,9 +388,7 @@ export default function PhotographyMap() {
 
   return (
     <div
-      className={`absolute inset-0 overflow-hidden ${
-        lightUI ? "bg-[#e9e9e4]" : "bg-[#0a0c12]"
-      }`}
+      className={`app-shell ${lightUI ? "bg-[#e9e9e4]" : "bg-[#0a0c12]"}`}
     >
       <MapGL
         ref={mapRef}

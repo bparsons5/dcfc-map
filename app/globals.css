@@ -28,17 +28,24 @@ body {
   overscroll-behavior: none;
 }
 
-/*
- * Lock the body to the visible viewport. On iOS Safari this keeps the app
- * pinned exactly between the browser chrome — no scroll, no rubber-band,
- * no gap below the content and nothing clipped at the top.
- */
 body {
-  position: fixed;
-  inset: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Full-screen shell for the app. `position: fixed; inset: 0` pins it to the
+ * viewport; `height: 100dvh` then overrides the vertical size with the
+ * *dynamic* viewport height, so it tracks the mobile browser's URL bar and
+ * never renders taller than what's actually visible (which was clipping the
+ * top on Chrome Android). Where `dvh` is unsupported it falls back to inset.
+ */
+.app-shell {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* Keep on-map controls clear of the notch / status bar / home indicator. */

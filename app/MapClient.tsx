@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 const PhotographyMap = dynamic(() => import("@/components/PhotographyMap"), {
   ssr: false,
   loading: () => (
-    <div className="absolute inset-0 grid place-items-center bg-[#0a0c12] text-zinc-300">
+    <div className="app-shell grid place-items-center bg-[#0a0c12] text-zinc-300">
       <div className="flex flex-col items-center gap-3">
         <div className="h-9 w-9 animate-spin rounded-full border-2 border-current border-t-transparent" />
         <p className="text-sm font-medium">Loading map…</p>
