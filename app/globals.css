@@ -22,14 +22,48 @@
 html,
 body {
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   overscroll-behavior: none;
 }
 
+/*
+ * Lock the body to the visible viewport. On iOS Safari this keeps the app
+ * pinned exactly between the browser chrome — no scroll, no rubber-band,
+ * no gap below the content and nothing clipped at the top.
+ */
 body {
+  position: fixed;
+  inset: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Keep on-map controls clear of the notch / status bar / home indicator. */
+.safe-top {
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+}
+.safe-top-panel {
+  top: calc(env(safe-area-inset-top, 0px) + 3.75rem);
+}
+.safe-bottom-lg {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2rem);
+}
+.safe-bottom-sm {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+.safe-left {
+  left: calc(env(safe-area-inset-left, 0px) + 1rem);
+}
+.safe-right {
+  right: calc(env(safe-area-inset-right, 0px) + 1rem);
+}
+.panel-maxh {
+  max-height: calc(
+    100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 5rem
+  );
 }
 
 /* Let the custom PopupCard provide its own chrome. */

@@ -388,7 +388,7 @@ export default function PhotographyMap() {
 
   return (
     <div
-      className={`fixed inset-0 overflow-hidden ${
+      className={`absolute inset-0 overflow-hidden ${
         lightUI ? "bg-[#e9e9e4]" : "bg-[#0a0c12]"
       }`}
     >
@@ -441,7 +441,7 @@ export default function PhotographyMap() {
           onClick={() => setSidebarOpen(false)}
           aria-label="Close panel"
           aria-expanded
-          className={`absolute left-4 top-4 z-30 ${ctrlBtn}`}
+          className={`absolute safe-left safe-top z-30 ${ctrlBtn}`}
           style={{ borderRadius: 5 }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
@@ -454,7 +454,7 @@ export default function PhotographyMap() {
           onClick={() => setSidebarOpen(true)}
           aria-label="Open panel"
           aria-expanded={false}
-          className={`absolute left-4 top-4 z-30 flex h-10 items-center overflow-hidden pl-3 shadow-lg ring-1 backdrop-blur transition-colors ${
+          className={`absolute safe-left safe-top z-30 flex h-10 items-center overflow-hidden pl-3 shadow-lg ring-1 backdrop-blur transition-colors ${
             lightUI
               ? "bg-white/90 text-zinc-800 ring-black/10 hover:bg-white"
               : "bg-zinc-800/80 text-zinc-100 ring-white/15 hover:bg-zinc-700"
@@ -491,7 +491,7 @@ export default function PhotographyMap() {
       )}
 
       {/* Map controls */}
-      <div className="absolute right-4 top-4 z-20 flex flex-col items-end gap-2">
+      <div className="absolute safe-right safe-top z-20 flex flex-col items-end gap-2">
         <button
           type="button"
           onClick={resetView}
@@ -561,7 +561,7 @@ export default function PhotographyMap() {
       </div>
 
       {/* Zoom */}
-      <div className="absolute bottom-8 right-4 z-20 flex flex-col gap-2">
+      <div className="absolute safe-bottom-lg safe-right z-20 flex flex-col gap-2">
         <button
           type="button"
           onClick={() => mapRef.current?.zoomIn()}
@@ -586,7 +586,7 @@ export default function PhotographyMap() {
 
       {status === "ready" && (
         <div
-          className={`pointer-events-none absolute bottom-3 left-4 z-10 rounded-md px-2.5 py-1 text-[11px] font-medium backdrop-blur ${badgeCls}`}
+          className={`pointer-events-none absolute safe-bottom-sm safe-left z-10 rounded-md px-2.5 py-1 text-[11px] font-medium backdrop-blur ${badgeCls}`}
         >
           {visible.length} of {places.length} places
         </div>
@@ -609,7 +609,7 @@ export default function PhotographyMap() {
       )}
 
       {status === "error" && (
-        <div className="absolute left-1/2 top-4 z-40 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg bg-red-600 px-4 py-2 text-center text-sm font-medium text-white shadow-lg">
+        <div className="absolute left-1/2 safe-top z-40 max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-lg bg-red-600 px-4 py-2 text-center text-sm font-medium text-white shadow-lg">
           Couldn’t load map data{errorMsg ? ` — ${errorMsg}` : ""}
         </div>
       )}

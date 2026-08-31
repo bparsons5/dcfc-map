@@ -21,6 +21,4 @@ export interface Place {
   tags: string;
   longitude: number;
   latitude: number;
-  /** true when the coordinates came from the geocoder rather than the sheet. */
-  geocoded: boolean;
 }

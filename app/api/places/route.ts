@@ -1,6 +1,5 @@
 import Papa from "papaparse";
 import { NextResponse } from "next/server";
-import { geocode } from "@/lib/geocode";
 import { normalizeGroup } from "@/lib/groups";
 import { SHEET_CSV_URL, type Place } from "@/lib/types";
 
@@ -19,6 +18,7 @@ interface SheetRow {
 }
 
 const TTL_MS = 60 * 60 * 1000; // 1 hour
+const FETCH_TIMEOUT_MS = 8000;
 let cache: { at: number; places: Place[] } | null = null;
 
 function toNumber(value: string | undefined): number | null {
@@ -36,7 +36,7 @@ function slug(input: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
-async function buildPlaces(csv: string): Promise<Place[]> {
+function buildPlaces(csv: string): Place[] {
   const parsed = Papa.parse<SheetRow>(csv, {
     header: true,
     skipEmptyLines: "greedy",
@@ -47,35 +47,23 @@ async function buildPlaces(csv: string): Promise<Place[]> {
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const name = (row.Name ?? "").trim();
-    const address = (row.Address ?? "").trim();
+    const longitude = toNumber(row.Longitude);
+    const latitude = toNumber(row.Latitude);
 
-    let longitude = toNumber(row.Longitude);
-    let latitude = toNumber(row.Latitude);
-    let geocoded = false;
-
-    if ((longitude == null || latitude == null) && address) {
-      const coord = await geocode(address);
-      if (coord) {
-        [longitude, latitude] = coord;
-        geocoded = true;
-      }
-    }
-
-    // Skip rows we cannot place on the map at all.
+    // The sheet is expected to always carry coordinates; skip any row missing them.
     if (longitude == null || latitude == null) continue;
 
+    const name = (row.Name ?? "").trim();
     places.push({
       id: `${i}-${slug(name) || "place"}`,
       name,
-      address,
+      address: (row.Address ?? "").trim(),
       group: normalizeGroup(row.Group ?? ""),
       linkUrl: (row["Button Link"] ?? "").trim(),
       linkLabel: (row.Notes ?? "").trim(),
       tags: (row.Tags ?? "").trim(),
       longitude,
       latitude,
-      geocoded,
     });
   }
 
@@ -91,10 +79,14 @@ export async function GET() {
 
   let csv: string;
   try {
-    const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
+    const res = await fetch(SHEET_CSV_URL, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
     if (!res.ok) throw new Error(`sheet responded ${res.status}`);
     csv = await res.text();
   } catch (err) {
+    // Fall back to a stale cache if we have one, otherwise surface the error.
     if (cache) return NextResponse.json(cache.places);
     return NextResponse.json(
       { error: `Unable to load the Google Sheet: ${(err as Error).message}` },
@@ -103,9 +95,7 @@ export async function GET() {
   }
 
   try {
-    console.log(`[places] parsing sheet CSV (${csv.length} bytes)`);
-    const places = await buildPlaces(csv);
-    console.log(`[places] built ${places.length} places`);
+    const places = buildPlaces(csv);
     cache = { at: Date.now(), places };
     return NextResponse.json(places, {
       headers: { "Cache-Control": "public, max-age=300" },

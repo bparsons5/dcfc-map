@@ -149,7 +149,7 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`pointer-events-auto absolute left-4 top-16 z-10 flex max-h-[calc(100vh-5rem)] w-[19rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl ring-1 backdrop-blur-md ${c.panel}`}
+      className={`panel-maxh pointer-events-auto absolute safe-left safe-top-panel z-10 flex w-[19rem] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl ring-1 backdrop-blur-md ${c.panel}`}
     >
       {/* Header */}
       <div className="px-3 pt-3">
