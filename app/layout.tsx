@@ -22,8 +22,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  // Draw under the notch / home indicator so env(safe-area-inset-*) is usable.
-  viewportFit: "cover",
+  // NOTE: deliberately no `viewportFit: "cover"` — with it, mobile Chrome /
+  // Custom Tabs render the page under the URL bar / status bar and rely on
+  // env(safe-area-inset-*), which those contexts report as 0. The default
+  // ("auto") keeps the page inside the visible, un-obscured area.
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

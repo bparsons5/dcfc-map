@@ -22,7 +22,7 @@ export default function PopupCard({
   const dark = theme === "dark";
   const c = {
     card: dark
-      ? "bg-zinc-900/95 text-zinc-100 ring-white/10"
+      ? "bg-zinc-800/95 text-zinc-100 ring-white/10"
       : "bg-white text-zinc-900 ring-black/10",
     close: dark
       ? "text-zinc-400 hover:bg-white/10 hover:text-zinc-100"
@@ -36,6 +36,7 @@ export default function PopupCard({
       : "text-blue-600 hover:text-blue-800",
     linkPlain: dark ? "text-zinc-400" : "text-zinc-500",
     desc: dark ? "text-zinc-300" : "text-zinc-600",
+    tag: dark ? "bg-white/10 text-zinc-300" : "bg-black/5 text-zinc-600",
   };
 
   return (
@@ -82,6 +83,19 @@ export default function PopupCard({
           ) : (
             <span className={`text-sm ${c.linkPlain}`}>{place.linkLabel}</span>
           )}
+        </div>
+      )}
+
+      {place.tagList.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {place.tagList.map((t) => (
+            <span
+              key={t}
+              className={`inline-flex max-h-[15px] items-center rounded px-1 text-[9px] font-medium uppercase leading-[15px] tracking-wide ${c.tag}`}
+            >
+              {t}
+            </span>
+          ))}
         </div>
       )}
 

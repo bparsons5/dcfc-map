@@ -317,7 +317,7 @@ export default function Sidebar({
                               {place.tagList.map((t) => (
                                 <span
                                   key={t}
-                                  className={`rounded px-1 py-[1px] text-[9px] font-medium uppercase tracking-wide ${c.tag}`}
+                                  className={`inline-flex max-h-[15px] items-center rounded px-1 text-[9px] font-medium uppercase leading-[15px] tracking-wide ${c.tag}`}
                                 >
                                   {t}
                                 </span>

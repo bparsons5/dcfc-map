@@ -226,8 +226,8 @@ export default function PhotographyMap() {
     return () => controller.abort();
   }, []);
 
-  // Once the data lands and the loading overlay clears, force the map to
-  // re-measure against the corrected --app-height dimensions.
+  // Once the data lands and the loading overlay clears, nudge the map to
+  // re-measure its container.
   useEffect(() => {
     if (status !== "ready") return;
     const id = requestAnimationFrame(() => {
@@ -461,7 +461,7 @@ export default function PhotographyMap() {
         ref={mapRef}
         initialViewState={homeView()}
         mapStyle={MAP_STYLES[mapMode]}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        style={{ position: "fixed", width: "100%", height: "100%" }}
         attributionControl={{ compact: true }}
         onLoad={scheduleRecompute}
         onMove={scheduleRecompute}

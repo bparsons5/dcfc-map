@@ -3,32 +3,16 @@
 import { useEffect } from "react";
 
 /**
- * Mobile browsers — notably iOS Chrome opened from an external link — report an
- * unreliable `vh` / `dvh`, which lets a `position: fixed` container slide up
- * under the status bar and hide the top of the UI.
- *
- * Drive the height from `window.innerHeight` instead, exposed as the CSS custom
- * property `--app-height`, and keep it in sync on resize / orientation change.
+ * Root client effect. The layout is sized purely with `height: 100%` /
+ * `position: fixed; inset: 0` (no vh/dvh, no JS measurement), so all this
+ * does is opt out of the browser restoring a stale scroll offset on
+ * back-navigation.
  */
 export default function AppHeight() {
   useEffect(() => {
-    const setAppHeight = () => {
-      document.documentElement.style.setProperty(
-        "--app-height",
-        `${window.innerHeight}px`,
-      );
-    };
-
-    setAppHeight();
-    window.addEventListener("resize", setAppHeight);
-    window.addEventListener("orientationchange", setAppHeight);
-    window.visualViewport?.addEventListener("resize", setAppHeight);
-
-    return () => {
-      window.removeEventListener("resize", setAppHeight);
-      window.removeEventListener("orientationchange", setAppHeight);
-      window.visualViewport?.removeEventListener("resize", setAppHeight);
-    };
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
   }, []);
 
   return null;
