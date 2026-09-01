@@ -461,7 +461,7 @@ export default function PhotographyMap() {
         ref={mapRef}
         initialViewState={homeView()}
         mapStyle={MAP_STYLES[mapMode]}
-        style={{ position: "fixed", width: "100%", height: "100%" }}
+        style={{ position: "absolute", inset: 0 }}
         attributionControl={{ compact: true }}
         onLoad={scheduleRecompute}
         onMove={scheduleRecompute}

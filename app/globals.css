@@ -19,29 +19,35 @@
   }
 }
 
+/* ------------------------------------------------------------------ *
+ * App sizing — the ENTIRE chain. Each level is height:100% of its
+ * parent; nothing uses vh/dvh, fixed positioning, or JS measurement.
+ *
+ *   html            height:100% of the browser viewport
+ *   └ body          height:100% of html
+ *     └ .app-shell  height:100% of body   (position:relative = the
+ *                   anchor for the map + the absolutely-placed controls)
+ *       └ MapGL     position:absolute; inset:0  (fills .app-shell)
+ *
+ * If the top is clipped in mobile Chrome, the culprit is what the
+ * browser reports for html's 100% — check that first.
+ * ------------------------------------------------------------------ */
 html,
 body {
-  position: fixed;
-  top: 0;
   height: 100%;
-  width: 100%;
   margin: 0;
-  padding: 0;
+  overflow: hidden;
+}
+
+.app-shell {
+  position: relative;
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
-}
-
-/*
- * Full-screen shell. `position: fixed; inset: 0` fills the *visible* area
- * between the browser's chrome (with no `viewport-fit=cover`, that area
- * already excludes the status bar / URL bar), so nothing is clipped at the
- * top. `body` is `overflow: hidden`, so the page never scrolls.
- */
-.app-shell {
 }
 
 /* Keep on-map controls clear of the notch / status bar / home indicator. */
