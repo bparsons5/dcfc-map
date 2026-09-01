@@ -76,6 +76,13 @@ body {
   );
 }
 
+/* Clickable controls inside the side panel get a pointer cursor. */
+.panel-maxh button,
+.panel-maxh a,
+.panel-maxh [role="button"] {
+  cursor: pointer;
+}
+
 /* Let the custom PopupCard provide its own chrome. */
 .dcfc-popup .maplibregl-popup-content {
   padding: 0;

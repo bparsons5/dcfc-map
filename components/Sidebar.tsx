@@ -190,6 +190,17 @@ export default function Sidebar({
         <p className={`text-xs leading-snug ${c.subtitle}`}>
           A list of helpful places for photographers in the DMV
         </p>
+        <p className={`mt-1 text-[10px] leading-snug opacity-60 ${c.subtitle}`}>
+          developed by{" "}
+          <a
+            href="https://www.instagram.com/rbrettparsons"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-2 hover:opacity-80"
+          >
+            @rbrettparsons
+          </a>
+        </p>
       </div>
 
       {/* Search */}

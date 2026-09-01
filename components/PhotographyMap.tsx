@@ -108,24 +108,25 @@ function computeLabelLayout(
     return ap - bp || a.y - b.y || a.x - b.x;
   });
 
-  const fits = (r: Rect) =>
+  const inBounds = (r: Rect) =>
     r.x1 >= leftInset + MARGIN &&
     r.x2 <= W - MARGIN &&
     r.y1 >= MARGIN &&
-    r.y2 <= H - MARGIN &&
-    !placed.some((q) => intersects(r, q));
+    r.y2 <= H - MARGIN;
+  const fits = (r: Rect) => inBounds(r) && !placed.some((q) => intersects(r, q));
 
-  for (const { p, x, y } of order) {
-    const w = Math.min(p.name.length * CHAR_W + 12, 240);
+  const candidatesFor = (
+    x: number,
+    y: number,
+    w: number,
+  ): Array<[Side, Rect]> => {
     const hh = LINE_H / 2;
-
     const right: Rect = { x1: x + LABEL_GAP, y1: y - hh, x2: x + LABEL_GAP + w, y2: y + hh };
     const left: Rect = { x1: x - LABEL_GAP - w, y1: y - hh, x2: x - LABEL_GAP, y2: y + hh };
     const bottom: Rect = { x1: x - w / 2, y1: y + LABEL_GAP, x2: x + w / 2, y2: y + LABEL_GAP + LINE_H };
     const top: Rect = { x1: x - w / 2, y1: y - LABEL_GAP - LINE_H, x2: x + w / 2, y2: y - LABEL_GAP };
-
     const preferRight = W - x >= x - leftInset;
-    const candidates: Array<[Side, Rect]> = [
+    return [
       ...(preferRight
         ? ([
             ["right", right],
@@ -138,12 +139,28 @@ function computeLabelLayout(
       ["bottom", bottom],
       ["top", top],
     ];
+  };
 
-    for (const [side, rect] of candidates) {
+  const labelWidth = (p: Place) => Math.min(p.name.length * CHAR_W + 12, 240);
+
+  for (const { p, x, y } of order) {
+    for (const [side, rect] of candidatesFor(x, y, labelWidth(p))) {
       if (!fits(rect)) continue;
       layout.set(p.id, side);
       placed.push(rect);
       break;
+    }
+  }
+
+  // Always show the hovered / selected place's label, even if it collided —
+  // fall back to the best in-bounds side (or just the first one).
+  if (activeId && !layout.has(activeId)) {
+    const active = pins.find((pt) => pt.p.id === activeId);
+    if (active) {
+      const cands = candidatesFor(active.x, active.y, labelWidth(active.p));
+      const [side, rect] = cands.find(([, r]) => inBounds(r)) ?? cands[0];
+      layout.set(active.p.id, side);
+      placed.push(rect);
     }
   }
 
@@ -219,6 +236,12 @@ export default function PhotographyMap() {
     });
     return () => cancelAnimationFrame(id);
   }, [status]);
+
+  // Pointer cursor while hovering a pin on the map.
+  useEffect(() => {
+    const canvas = mapRef.current?.getCanvas();
+    if (canvas) canvas.style.cursor = hoverId ? "pointer" : "";
+  }, [hoverId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -302,6 +325,8 @@ export default function PhotographyMap() {
     mapRef.current?.flyTo({
       center: [v.longitude, v.latitude],
       zoom: v.zoom,
+      bearing: 0,
+      pitch: 0,
       duration: 1000,
       essential: true,
     });
@@ -566,7 +591,7 @@ export default function PhotographyMap() {
           {modeMenuOpen && (
             <div
               role="menu"
-              className={`absolute right-0 mt-2 w-36 overflow-hidden rounded-xl py-1 text-sm shadow-xl ring-1 backdrop-blur ${menuBox}`}
+              className={`absolute right-full top-0 mr-2 w-36 overflow-hidden rounded-xl py-1 text-sm shadow-xl ring-1 backdrop-blur ${menuBox}`}
             >
               {MODE_ORDER.map((mode) => (
                 <button
@@ -619,7 +644,7 @@ export default function PhotographyMap() {
             <div
               role="dialog"
               aria-label="Suggest a place"
-              className={`absolute right-0 mt-2 w-64 rounded-xl p-3 text-sm shadow-xl ring-1 backdrop-blur ${menuBox}`}
+              className={`absolute right-full top-0 mr-2 w-64 max-w-[calc(100vw-4rem)] rounded-xl p-3 text-sm shadow-xl ring-1 backdrop-blur ${menuBox}`}
             >
               <p className={`font-semibold ${lightUI ? "text-zinc-900" : "text-white"}`}>
                 Suggest a place
