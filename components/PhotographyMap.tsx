@@ -83,8 +83,8 @@ function computeLabelLayout(
   const H = container.clientHeight;
   if (!W || !H) return layout;
 
-  const CHAR_W = 7;
-  const LINE_H = 17;
+  const CHAR_W = 8.2;
+  const LINE_H = 20;
   const MARGIN = 2;
 
   const pins = places
@@ -161,7 +161,9 @@ export default function PhotographyMap() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => !isMobileViewport());
   const [mapMode, setMapMode] = useState<MapMode>("dark");
   const [modeMenuOpen, setModeMenuOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const modeMenuRef = useRef<HTMLDivElement>(null);
+  const addRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!modeMenuOpen) return;
@@ -175,10 +177,24 @@ export default function PhotographyMap() {
   }, [modeMenuOpen]);
 
   useEffect(() => {
+    if (!addOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (addRef.current && !addRef.current.contains(e.target as Node)) {
+        setAddOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [addOpen]);
+
+  useEffect(() => {
     const controller = new AbortController();
     (async () => {
       try {
-        const res = await fetch("/api/places", { signal: controller.signal });
+        const res = await fetch("/api/places", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`);
         if (!Array.isArray(data)) throw new Error("Unexpected response shape");
@@ -192,6 +208,17 @@ export default function PhotographyMap() {
     })();
     return () => controller.abort();
   }, []);
+
+  // Once the data lands and the loading overlay clears, force the map to
+  // re-measure against the corrected --app-height dimensions.
+  useEffect(() => {
+    if (status !== "ready") return;
+    const id = requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+      mapRef.current?.resize();
+    });
+    return () => cancelAnimationFrame(id);
+  }, [status]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -286,6 +313,17 @@ export default function PhotographyMap() {
     const layout = labelLayoutRef.current;
     const labelled = visible.filter((p) => layout.has(p.id));
 
+    // Draw the hovered / selected place last so it sits on top of everything.
+    const toTop = <T extends Place>(rows: T[]): T[] =>
+      activeId
+        ? [
+            ...rows.filter((p) => p.id !== activeId),
+            ...rows.filter((p) => p.id === activeId),
+          ]
+        : rows;
+    const dotData = toTop(visible);
+    const labelData = toTop(labelled);
+
     const darkBasemap = mapMode === "dark";
     const labelColor: [number, number, number, number] = darkBasemap
       ? [236, 238, 244, 255]
@@ -297,14 +335,14 @@ export default function PhotographyMap() {
     return [
       new ScatterplotLayer<Place>({
         id: "place-dots",
-        data: visible,
+        data: dotData,
         pickable: true,
         stroked: true,
         filled: true,
         radiusUnits: "pixels",
         radiusMinPixels: 4,
         getPosition: (d) => [d.longitude, d.latitude],
-        getRadius: (d) => (d.id === activeId ? 11 : 7),
+        getRadius: (d) => (d.id === activeId ? 12 : 7),
         getFillColor: (d) => groupColor(d.group),
         getLineColor: darkBasemap ? [255, 255, 255, 255] : [17, 20, 26, 255],
         lineWidthUnits: "pixels",
@@ -323,11 +361,11 @@ export default function PhotographyMap() {
       }),
       new TextLayer<Place>({
         id: "place-labels",
-        data: labelled,
+        data: labelData,
         pickable: true,
         getPosition: (d) => [d.longitude, d.latitude],
         getText: (d) => d.name,
-        getSize: 12,
+        getSize: (d) => (d.id === activeId ? 18 : 14),
         sizeUnits: "pixels",
         getTextAnchor: (d): "start" | "middle" | "end" => {
           const s = layout.get(d.id);
@@ -338,15 +376,18 @@ export default function PhotographyMap() {
           return s === "top" ? "bottom" : s === "bottom" ? "top" : "center";
         },
         getPixelOffset: (d): [number, number] => {
+          // Push the hovered / selected label a little further off its pin,
+          // since that pin also grows on hover.
+          const gap = d.id === activeId ? LABEL_GAP + 7 : LABEL_GAP;
           switch (layout.get(d.id)) {
             case "left":
-              return [-LABEL_GAP, 0];
+              return [-gap, 0];
             case "top":
-              return [0, -LABEL_GAP];
+              return [0, -gap];
             case "bottom":
-              return [0, LABEL_GAP];
+              return [0, gap];
             default:
-              return [LABEL_GAP, 0];
+              return [gap, 0];
           }
         },
         getColor: labelColor,
@@ -365,8 +406,9 @@ export default function PhotographyMap() {
         updateTriggers: {
           getTextAnchor: labelVersion,
           getAlignmentBaseline: labelVersion,
-          getPixelOffset: labelVersion,
+          getPixelOffset: [labelVersion, activeId],
           getColor: mapMode,
+          getSize: activeId,
         },
       }),
     ];
@@ -464,7 +506,7 @@ export default function PhotographyMap() {
           </svg>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/Banners.png"
+            src="/Banners_560.png"
             alt=""
             className="h-full w-32 object-cover"
             style={{ padding: 3, borderRadius: 6, marginLeft: 3 }}
@@ -480,6 +522,7 @@ export default function PhotographyMap() {
           onSearch={setSearch}
           selectedId={selectedId}
           onSelect={handleSelect}
+          onHoverPlace={setHoverId}
           status={status}
           errorMsg={errorMsg}
           theme={lightUI ? "light" : "dark"}
@@ -556,10 +599,68 @@ export default function PhotographyMap() {
             </div>
           )}
         </div>
+
+        <div ref={addRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setAddOpen((o) => !o)}
+            title="Suggest a place"
+            aria-label="Suggest a place"
+            aria-haspopup="dialog"
+            aria-expanded={addOpen}
+            className={ctrlBtn}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </button>
+
+          {addOpen && (
+            <div
+              role="dialog"
+              aria-label="Suggest a place"
+              className={`absolute right-0 mt-2 w-64 rounded-xl p-3 text-sm shadow-xl ring-1 backdrop-blur ${menuBox}`}
+            >
+              <p className={`font-semibold ${lightUI ? "text-zinc-900" : "text-white"}`}>
+                Suggest a place
+              </p>
+              <p className={`mt-1 leading-snug ${lightUI ? "text-zinc-600" : "text-zinc-300"}`}>
+                {'\nWant something added to the map?\n\n Email '}
+                <a
+                  href="mailto:dcfilmcollective@gmail.com"
+                  className={`font-medium underline underline-offset-2 ${
+                    lightUI
+                      ? "text-blue-600 hover:text-blue-800"
+                      : "text-blue-400 hover:text-blue-300"
+                  }`}
+                >
+                  dcfilmcollective@gmail.com
+                </a>{" "}
+                or DM{" "}
+                <a
+                  href="https://www.instagram.com/dcfilmcollective"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`font-medium underline underline-offset-2 ${
+                    lightUI
+                      ? "text-blue-600 hover:text-blue-800"
+                      : "text-blue-400 hover:text-blue-300"
+                  }`}
+                >
+                  @dcfilmcollective
+                </a>{" "}
+                on Instagram.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Zoom */}
-      <div className="absolute safe-bottom-lg safe-right z-20 flex flex-col gap-2">
+      <div
+        className="absolute safe-right z-20 flex flex-col gap-2"
+        style={{ bottom: 44 }}
+      >
         <button
           type="button"
           onClick={() => mapRef.current?.zoomIn()}

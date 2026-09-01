@@ -2,7 +2,8 @@
 
 import type { Place } from "@/lib/types";
 
-function googleMapsUrl(place: Place): string {
+function addressHref(place: Place): string {
+  if (place.googleLink) return place.googleLink;
   if (place.address) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address)}`;
   }
@@ -34,6 +35,7 @@ export default function PopupCard({
       ? "text-blue-400 hover:text-blue-300"
       : "text-blue-600 hover:text-blue-800",
     linkPlain: dark ? "text-zinc-400" : "text-zinc-500",
+    desc: dark ? "text-zinc-300" : "text-zinc-600",
   };
 
   return (
@@ -57,7 +59,7 @@ export default function PopupCard({
 
       {place.address && (
         <a
-          href={googleMapsUrl(place)}
+          href={addressHref(place)}
           target="_blank"
           rel="noopener noreferrer"
           className={`mt-1.5 block text-sm leading-snug underline underline-offset-2 ${c.address}`}
@@ -67,7 +69,7 @@ export default function PopupCard({
       )}
 
       {place.linkLabel && (
-        <div className="mt-3">
+        <div>
           {place.linkUrl ? (
             <a
               href={place.linkUrl}
@@ -81,6 +83,12 @@ export default function PopupCard({
             <span className={`text-sm ${c.linkPlain}`}>{place.linkLabel}</span>
           )}
         </div>
+      )}
+
+      {place.description && (
+        <p className={`mt-3 text-sm leading-snug ${c.desc}`}>
+          {place.description}
+        </p>
       )}
     </div>
   );

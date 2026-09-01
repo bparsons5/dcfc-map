@@ -35,16 +35,19 @@ body {
 }
 
 /*
- * Full-screen shell for the app. `position: fixed; inset: 0` pins it to the
- * viewport; `height: 100dvh` then overrides the vertical size with the
- * *dynamic* viewport height, so it tracks the mobile browser's URL bar and
- * never renders taller than what's actually visible (which was clipping the
- * top on Chrome Android). Where `dvh` is unsupported it falls back to inset.
+ * Full-screen shell for the app. Mobile `vh` / `dvh` are unreliable (iOS
+ * Chrome from an external link renders the container too tall and slides it
+ * up under the status bar), so the real height comes from JS via the
+ * `--app-height` custom property (see app/AppHeight.tsx), with `100vh` only
+ * as a first-paint fallback.
  */
 .app-shell {
   position: fixed;
-  inset: 0;
-  height: 100dvh;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: var(--app-height, 100vh);
   overflow: hidden;
 }
 
@@ -69,7 +72,7 @@ body {
 }
 .panel-maxh {
   max-height: calc(
-    100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 5rem
+    100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8.5rem
   );
 }
 

@@ -17,8 +17,14 @@ export interface Place {
   linkUrl: string;
   /** Display text for the link — the `Notes` column, e.g. `@handle` or a site name. */
   linkLabel: string;
-  /** Raw `Tags` column, used for search only. */
+  /** URL from the `Google Link` column — used as the address hyperlink. */
+  googleLink: string;
+  /** Free-text `Description` column (may be empty). */
+  description: string;
+  /** Raw `Tags` column, used for search. */
   tags: string;
+  /** `Tags` split on commas and trimmed. */
+  tagList: string[];
   longitude: number;
   latitude: number;
 }

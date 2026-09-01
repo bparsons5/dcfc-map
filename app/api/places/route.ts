@@ -3,23 +3,25 @@ import { NextResponse } from "next/server";
 import { normalizeGroup } from "@/lib/groups";
 import { SHEET_CSV_URL, type Place } from "@/lib/types";
 
-// Always run on request so we can serve the in-memory cache / fresh sheet data.
+// Always run on request; every call fetches the sheet fresh (no caching).
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 interface SheetRow {
   Name?: string;
   Address?: string;
   Latitude?: string;
   Longitude?: string;
+  "Google Link"?: string;
   Notes?: string;
   Group?: string;
   "Button Link"?: string;
   Tags?: string;
+  Description?: string;
 }
 
-const TTL_MS = 60 * 60 * 1000; // 1 hour
 const FETCH_TIMEOUT_MS = 8000;
-let cache: { at: number; places: Place[] } | null = null;
 
 function toNumber(value: string | undefined): number | null {
   if (value == null) return null;
@@ -54,6 +56,7 @@ function buildPlaces(csv: string): Place[] {
     if (longitude == null || latitude == null) continue;
 
     const name = (row.Name ?? "").trim();
+    const tags = (row.Tags ?? "").trim();
     places.push({
       id: `${i}-${slug(name) || "place"}`,
       name,
@@ -61,7 +64,13 @@ function buildPlaces(csv: string): Place[] {
       group: normalizeGroup(row.Group ?? ""),
       linkUrl: (row["Button Link"] ?? "").trim(),
       linkLabel: (row.Notes ?? "").trim(),
-      tags: (row.Tags ?? "").trim(),
+      googleLink: (row["Google Link"] ?? "").trim(),
+      description: (row.Description ?? "").trim(),
+      tags,
+      tagList: tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean),
       longitude,
       latitude,
     });
@@ -71,12 +80,6 @@ function buildPlaces(csv: string): Place[] {
 }
 
 export async function GET() {
-  if (cache && Date.now() - cache.at < TTL_MS) {
-    return NextResponse.json(cache.places, {
-      headers: { "Cache-Control": "public, max-age=300" },
-    });
-  }
-
   let csv: string;
   try {
     const res = await fetch(SHEET_CSV_URL, {
@@ -86,24 +89,21 @@ export async function GET() {
     if (!res.ok) throw new Error(`sheet responded ${res.status}`);
     csv = await res.text();
   } catch (err) {
-    // Fall back to a stale cache if we have one, otherwise surface the error.
-    if (cache) return NextResponse.json(cache.places);
     return NextResponse.json(
       { error: `Unable to load the Google Sheet: ${(err as Error).message}` },
-      { status: 502 },
+      { status: 502, headers: { "Cache-Control": "no-store" } },
     );
   }
 
   try {
     const places = buildPlaces(csv);
-    cache = { at: Date.now(), places };
     return NextResponse.json(places, {
-      headers: { "Cache-Control": "public, max-age=300" },
+      headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch (err) {
     return NextResponse.json(
       { error: `Failed to parse sheet data: ${(err as Error).message}` },
-      { status: 500 },
+      { status: 500, headers: { "Cache-Control": "no-store" } },
     );
   }
 }

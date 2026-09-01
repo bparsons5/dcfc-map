@@ -11,6 +11,7 @@ interface SidebarProps {
   onSearch: (value: string) => void;
   selectedId: string | null;
   onSelect: (place: Place) => void;
+  onHoverPlace: (id: string | null) => void;
   status: "loading" | "ready" | "error";
   errorMsg: string;
   theme: "light" | "dark";
@@ -82,6 +83,7 @@ export default function Sidebar({
   onSearch,
   selectedId,
   onSelect,
+  onHoverPlace,
   status,
   errorMsg,
   theme,
@@ -145,6 +147,9 @@ export default function Sidebar({
     eyeBtn: dark
       ? "text-zinc-500 hover:bg-white/10 hover:text-zinc-100"
       : "text-zinc-400 hover:bg-black/5 hover:text-zinc-700",
+    tag: dark
+      ? "bg-white/10 text-zinc-300"
+      : "bg-black/5 text-zinc-600",
   };
 
   return (
@@ -162,7 +167,7 @@ export default function Sidebar({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/Banners.png"
+              src="/Banners_560.png"
               alt="DC Film Collective"
               className="h-20 w-full object-cover"
             />
@@ -170,7 +175,7 @@ export default function Sidebar({
         ) : (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src="/Banners.png"
+            src="/Banners_560.png"
             alt=""
             className="h-20 w-full rounded-xl object-cover"
           />
@@ -281,15 +286,33 @@ export default function Sidebar({
                         <button
                           type="button"
                           onClick={() => onSelect(place)}
-                          className={`flex w-full items-center gap-2.5 rounded-lg py-1.5 pl-3 pr-2 text-left text-sm transition-colors ${
+                          onMouseEnter={() => onHoverPlace(place.id)}
+                          onMouseLeave={() => onHoverPlace(null)}
+                          onFocus={() => onHoverPlace(place.id)}
+                          onBlur={() => onHoverPlace(null)}
+                          className={`flex w-full flex-col gap-1 rounded-lg py-1.5 pl-4 pr-2 text-left text-sm transition-colors ${
                             active ? c.itemActive : c.itemIdle
                           }`}
                         >
-                          <span
-                            className={`h-2.5 w-2.5 shrink-0 rounded-full ring-1 ${c.dotRing}`}
-                            style={{ backgroundColor: color }}
-                          />
-                          <span className="truncate">{place.name}</span>
+                          <span className="flex items-center gap-2.5">
+                            <span
+                              className={`h-2.5 w-2.5 shrink-0 rounded-full ring-1 ${c.dotRing}`}
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="truncate">{place.name}</span>
+                          </span>
+                          {place.tagList.length > 0 && (
+                            <span className="flex flex-wrap gap-1 pl-[1.25rem]">
+                              {place.tagList.map((t) => (
+                                <span
+                                  key={t}
+                                  className={`rounded px-1 py-[1px] text-[9px] font-medium uppercase tracking-wide ${c.tag}`}
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </span>
+                          )}
                         </button>
                       </li>
                     );
