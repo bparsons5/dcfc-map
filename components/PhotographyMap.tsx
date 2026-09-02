@@ -442,7 +442,7 @@ export default function PhotographyMap() {
   // ---- Theme (follows the basemap) --------------------------------------
   const lightUI = mapMode !== "dark";
   const ctrlBtn =
-    "grid h-10 w-10 place-items-center rounded-full shadow-lg ring-1 backdrop-blur transition-colors " +
+    "grid h-10 w-10 cursor-pointer place-items-center rounded-full shadow-lg ring-1 backdrop-blur transition-colors " +
     (lightUI
       ? "bg-white/90 text-zinc-800 ring-black/10 hover:bg-white"
       : "bg-zinc-800/80 text-zinc-100 ring-white/15 hover:bg-zinc-700");
@@ -519,7 +519,7 @@ export default function PhotographyMap() {
           onClick={() => setSidebarOpen(true)}
           aria-label="Open panel"
           aria-expanded={false}
-          className={`absolute safe-left safe-top z-30 flex h-10 items-center overflow-hidden pl-3 shadow-lg ring-1 backdrop-blur transition-colors ${
+          className={`absolute safe-left safe-top z-30 flex h-10 cursor-pointer items-center overflow-hidden pl-3 shadow-lg ring-1 backdrop-blur transition-colors ${
             lightUI
               ? "bg-white/90 text-zinc-800 ring-black/10 hover:bg-white"
               : "bg-zinc-800/80 text-zinc-100 ring-white/15 hover:bg-zinc-700"
