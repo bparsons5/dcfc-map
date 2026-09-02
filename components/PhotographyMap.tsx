@@ -319,6 +319,15 @@ export default function PhotographyMap() {
     [flyTo],
   );
 
+  // Selecting from the panel: on mobile, collapse the panel so the map is visible.
+  const handleSelectFromPanel = useCallback(
+    (place: Place) => {
+      handleSelect(place);
+      if (isMobileViewport()) setSidebarOpen(false);
+    },
+    [handleSelect],
+  );
+
   const resetView = useCallback(() => {
     setSelectedId(null);
     const v = homeView();
@@ -546,7 +555,7 @@ export default function PhotographyMap() {
           search={search}
           onSearch={setSearch}
           selectedId={selectedId}
-          onSelect={handleSelect}
+          onSelect={handleSelectFromPanel}
           onHoverPlace={setHoverId}
           status={status}
           errorMsg={errorMsg}
