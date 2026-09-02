@@ -328,6 +328,13 @@ export default function PhotographyMap() {
     [handleSelect],
   );
 
+  // Opening the panel on mobile dismisses any open popup so it doesn't sit
+  // hidden behind the panel.
+  const openSidebar = useCallback(() => {
+    setSidebarOpen(true);
+    if (isMobileViewport()) setSelectedId(null);
+  }, []);
+
   const resetView = useCallback(() => {
     setSelectedId(null);
     const v = homeView();
@@ -525,7 +532,7 @@ export default function PhotographyMap() {
       ) : (
         <button
           type="button"
-          onClick={() => setSidebarOpen(true)}
+          onClick={openSidebar}
           aria-label="Open panel"
           aria-expanded={false}
           className={`absolute safe-left safe-top z-30 flex h-10 cursor-pointer items-center overflow-hidden pl-3 shadow-lg ring-1 backdrop-blur transition-colors ${
